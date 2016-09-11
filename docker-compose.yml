@@ -1,0 +1,80 @@
+version: "2"
+
+services:
+  sonarqube:
+    image: sonarqube
+    ports:
+      - "9000:9000"
+    networks:
+      - cinet
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://db:5432/sonar
+      - SONARQUBE_JDBC_USERNAME=sonar
+      - SONARQUBE_JDBC_PASSWORD=sonar
+    volumes:
+      - ./sonarqube_conf:/opt/sonarqube/conf
+      - ./sonarqube_data:/opt/sonarqube/data
+      - ./sonarqube_extensions:/opt/sonarqube/extensions
+      - ./sonarqube_bundled-plugins:/opt/sonarqube/lib/bundled-plugins
+
+  db:
+    image: postgres
+    networks:
+      - cinet
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_ENCODING=UNICODE
+      - POSTGRES_COLLATE=C
+      - POSTGRES_COLLATE_TYPE=C
+    volumes:
+      - ./add-jira-db.sh:/docker-entrypoint-initdb.d/add-jira-db.sh
+      - ./postgresql_data:/var/lib/postgresql/data
+
+  gitlab:
+    image: 'gitlab/gitlab-ce:latest'
+    restart: always
+    hostname: 'gitlab.do'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.do:9090'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+    ports:
+      - '9090:9090'
+      - '2224:22'
+    volumes:
+      - ./gitlab_conf:/etc/gitlab
+      - ./gitlab_logs:/var/log/gitlab
+      - ./gitlab_data:/var/opt/gitlab
+
+  jira:
+    image: blacklabelops/jira
+    networks:
+      - cinet
+    volumes:
+      - ./jira_data:/var/atlassian/jira
+    ports:
+      - '8080:8080'
+    environment:
+      - 'JIRA_DATABASE_URL=postgresql://jira@db/jira'
+      - 'JIRA_DB_PASSWORD=jira'
+      - 'CATALINA_OPTS= -Xms256m -Xmx1g'
+      - 'JIRA_PROXY_NAME='
+      - 'JIRA_PROXY_PORT='
+      - 'JIRA_PROXY_SCHEME='
+      - 'JIRA_DELAYED_START=10'
+
+networks:
+  cinet:
+    driver: bridge
+
+#volumes:
+#  sonarqube_conf:
+#  sonarqube_data:
+#  sonarqube_extensions:
+#  sonarqube_bundled-plugins:
+#  postgresql_data:
+#  gitlab_conf:
+#  gitlab_logs:
+#  gitlab_data:
+#  jira_data:
