@@ -60,7 +60,7 @@ services:
     environment:
       - 'JIRA_DATABASE_URL=postgresql://jira@db/jira'
       - 'JIRA_DB_PASSWORD=jira'
-      - 'CATALINA_OPTS= -Xms256m -Xmx1g'
+      - 'CATALINA_OPTS= -Xms384m -Xmx1g'
       - 'JIRA_PROXY_NAME='
       - 'JIRA_PROXY_PORT='
       - 'JIRA_PROXY_SCHEME='
