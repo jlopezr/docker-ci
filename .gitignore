@@ -1,0 +1,6 @@
+gitlab_conf
+gitlab_data
+gitlab_logs
+jira_data
+postgresql_data
+sonarqube_data
